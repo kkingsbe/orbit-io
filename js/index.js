@@ -3,13 +3,35 @@ const width = window.innerWidth
 const height = window.innerHeight
 const ratio = width / height
 
+var socket;
+var players = {};
+var currentPlayer = {};
+
 var playerSphere;
 var wIsDown = false;
 var aIsDown = false;
 var sIsDown = false;
 var dIsDown = false;
 
+var username = prompt("Enter Username");
 const init = () => {
+  //set up websocket
+  socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
+  socket.onopen = (e) => {
+    console.log("Connection established!")
+
+  }
+  socket.onmessage = (e) => {
+    console.log(e.data)
+  }
+  socket.onclose = (e) => {
+    console.log("Connection ended")
+  }
+  socket.onerror = (e) => {
+    console.log("Error :( ",e)
+  }
+
+  //set  up scene
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(45, ratio, 1, 1000)
   camera.position.z = 7
@@ -63,6 +85,7 @@ const init = () => {
     if (dIsDown)  {
       playerSphere.position.z -= speed;
     }
+    currentPlayer.position = playerSphere.position;
   }
 
   const render = () => {
@@ -72,6 +95,9 @@ const init = () => {
     animate()
   }
   render()
+  setInterval(() => {
+    socket.send(JSON.stringify({"action": "OnState", "state": currentPlayer}))
+  }, 100)
 }
 
   //Input
