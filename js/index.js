@@ -14,6 +14,7 @@ var sIsDown = false;
 var dIsDown = false;
 
 var username = prompt("Enter Username");
+currentPlayer.username = username
 const init = () => {
   //set up websocket
   socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
