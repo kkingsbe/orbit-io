@@ -49,19 +49,19 @@ const init = () => {
   })
 
   const animate = () => {
-
+    var speed = 1;
     //Player Sphere Movement
     if (wIsDown)  {
-      playerSphere.position.x -= .1;
+      playerSphere.position.x -= speed;
     }
     if (aIsDown)  {
-      playerSphere.position.z += .1;
+      playerSphere.position.z += speed;
     }
     if (sIsDown)  {
-      playerSphere.position.x += .1;
+      playerSphere.position.x += speed;
     }
     if (dIsDown)  {
-      playerSphere.position.z -= .1;
+      playerSphere.position.z -= speed;
     }
   }
 
