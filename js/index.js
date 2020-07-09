@@ -23,7 +23,19 @@ const init = () => {
 
   }
   socket.onmessage = (e) => {
-    console.log(e.data)
+    var data = JSON.parse(e.data);
+    if (data.username == username)  {
+      return;
+    }
+    if (typeof(players[data.username]) == "undefined")  {
+      players[data.username] = data;
+      let npGeometry = new THREE.SphereGeometry( 5, 32, 32 );
+      let npMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      let npSphere = new THREE.Mesh( geometry, material );
+      scene.add( npSphere );
+      players[data.username].sphere = npSphere;
+    }
+    console.log(data)
   }
   socket.onclose = (e) => {
     console.log("Connection ended")
@@ -87,6 +99,10 @@ const init = () => {
       playerSphere.position.z -= speed;
     }
     currentPlayer.position = playerSphere.position;
+
+    for (let player in players) {
+      players[player].sphere.position = players[player].position;
+    }
   }
 
   const render = () => {
