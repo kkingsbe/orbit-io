@@ -2,7 +2,12 @@ var scene, camera, renderer, controls
 const width = window.innerWidth
 const height = window.innerHeight
 const ratio = width / height
+
 var playerSphere;
+var wIsDown = false;
+var aIsDown = false;
+var sIsDown = false;
+var dIsDown = false;
 
 const init = () => {
   scene = new THREE.Scene()
@@ -16,13 +21,12 @@ const init = () => {
   //axis
   axis = new THREE.AxisHelper(300)
   scene.add(axis)
+  
   //sphere
   var geometry = new THREE.SphereGeometry( 5, 32, 32 );
   var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
   var sphere = new THREE.Mesh( geometry, material );
   scene.add( sphere );
-  //sphere initial position
-  sphere.position.x = 20;
   playerSphere = sphere;
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -39,7 +43,20 @@ const init = () => {
   })
 
   const animate = () => {
-    //sphere.position.y += 0.1
+
+    //Player Sphere Movement
+    if (wIsDown)  {
+      playerSphere.position.x -= .1;
+    }
+    if (aIsDown)  {
+      playerSphere.position.z += .1;
+    }
+    if (sIsDown)  {
+      playerSphere.position.x += .1;
+    }
+    if (dIsDown)  {
+      playerSphere.position.z -= .1;
+    }
   }
 
   const render = () => {
@@ -50,23 +67,45 @@ const init = () => {
   }
   render()
 }
-  //input handling and movement
+
+  //Input
   document.addEventListener('keydown', function(event) {
       if(event.keyCode == 87) {
-          console.log('Forward was pressed');
-          playerSphere.position.x -= 1;
+          //console.log('Forward was pressed');
+          wIsDown = true;
       }
       else if(event.keyCode == 65) {
-          console.log('D was pressed');
-          playerSphere.position.z += 1;
+          //console.log('A was pressed');
+          aIsDown = true;
       }
       else if(event.keyCode == 83) {
-          console.log('S was pressed');
-          playerSphere.position.x += 1;
+          //console.log('S was pressed');
+          sIsDown = true;
       }
 
       else if(event.keyCode == 68) {
-          playerSphere.position.z -= 1;
+        //console.log('D was pressed');
+          dIsDown = true;
+      }
+  });
+
+  document.addEventListener('keyup', function(event) {
+      if(event.keyCode == 87) {
+          //console.log('Forward was let go');
+          wIsDown = false;
+      }
+      else if(event.keyCode == 65) {
+          //console.log('A was let go');
+          aIsDown = false;
+      }
+      else if(event.keyCode == 83) {
+          //console.log('S was let go');
+          sIsDown = false;
+      }
+
+      else if(event.keyCode == 68) {
+        //  console.log('d was let go');
+          dIsDown = false;
       }
   });
 
