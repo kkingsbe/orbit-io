@@ -3,6 +3,12 @@ const width = window.innerWidth
 const height = window.innerHeight
 const ratio = width / height
 
+var playerSphere;
+var wIsDown = false;
+var aIsDown = false;
+var sIsDown = false;
+var dIsDown = false;
+
 const init = () => {
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(45, ratio, 1, 1000)
@@ -11,11 +17,26 @@ const init = () => {
   camera.position.x = 3
 
   controls = new THREE.OrbitControls(camera, document.getElementById("viewport"))
+
+  //axis
   axis = new THREE.AxisHelper(300)
-  scene.add(axis)
+  //scene.add(axis)
+
+  //sphere
+  var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+  var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+  var sphere = new THREE.Mesh( geometry, material );
+  scene.add( sphere );
+  playerSphere = sphere;
+
+  //grid
+  var size = 100;
+  var divisions = 10;
+  var gridHelper = new THREE.GridHelper( size, divisions );
+  scene.add( gridHelper );
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setClearColor("#e3e3e3")
+  renderer.setClearColor("#303030")
   renderer.setSize(width, height)
 
   document.getElementById("viewport").append(renderer.domElement)
@@ -28,7 +49,20 @@ const init = () => {
   })
 
   const animate = () => {
-    //sphere.position.y += 0.1
+    var speed = 1;
+    //Player Sphere Movement
+    if (wIsDown)  {
+      playerSphere.position.x -= speed;
+    }
+    if (aIsDown)  {
+      playerSphere.position.z += speed;
+    }
+    if (sIsDown)  {
+      playerSphere.position.x += speed;
+    }
+    if (dIsDown)  {
+      playerSphere.position.z -= speed;
+    }
   }
 
   const render = () => {
@@ -39,6 +73,47 @@ const init = () => {
   }
   render()
 }
+
+  //Input
+  document.addEventListener('keydown', function(event) {
+      if(event.keyCode == 87) {
+          //console.log('Forward was pressed');
+          wIsDown = true;
+      }
+      else if(event.keyCode == 65) {
+          //console.log('A was pressed');
+          aIsDown = true;
+      }
+      else if(event.keyCode == 83) {
+          //console.log('S was pressed');
+          sIsDown = true;
+      }
+
+      else if(event.keyCode == 68) {
+        //console.log('D was pressed');
+          dIsDown = true;
+      }
+  });
+
+  document.addEventListener('keyup', function(event) {
+      if(event.keyCode == 87) {
+          //console.log('Forward was let go');
+          wIsDown = false;
+      }
+      else if(event.keyCode == 65) {
+          //console.log('A was let go');
+          aIsDown = false;
+      }
+      else if(event.keyCode == 83) {
+          //console.log('S was let go');
+          sIsDown = false;
+      }
+
+      else if(event.keyCode == 68) {
+        //  console.log('d was let go');
+          dIsDown = false;
+      }
+  });
 
 const getPointLight = (color, intensity, distance) => {
   let light = new THREE.PointLight(color, intensity, distance)
