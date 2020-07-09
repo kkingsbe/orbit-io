@@ -6,6 +6,7 @@ const ratio = width / height
 var socket;
 var players = {};
 var currentPlayer = {};
+var date = new Date();
 
 var playerSphere;
 var wIsDown = false;
@@ -24,9 +25,10 @@ const init = () => {
   }
   socket.onmessage = (e) => {
     var data = JSON.parse(e.data);
-    if (data.username == username)  {
+    if (typeof(data.username) == "undefined" || data.username == username)  {
       return;
     }
+    //new player
     if (typeof(players[data.username]) == "undefined")  {
       players[data.username] = data;
       let npGeometry = new THREE.SphereGeometry( 5, 32, 32 );
@@ -34,8 +36,10 @@ const init = () => {
       let npSphere = new THREE.Mesh( geometry, material );
       scene.add( npSphere );
       players[data.username].sphere = npSphere;
-    } else {
-      players[data.username].position = data.position;
+    } else { // existing player
+      if (players[data.username].timestamp < data.timestamp)  {
+        players[data.username].position = data.position;
+      }
     }
     console.log(data)
   }
@@ -103,7 +107,9 @@ const init = () => {
     currentPlayer.position = playerSphere.position;
 
     for (let player in players) {
-      players[player].sphere.position = players[player].position;
+      players[player].sphere.position.x = players[player].position.x;
+      players[player].sphere.position.y = players[player].position.y;
+      players[player].sphere.position.z = players[player].position.z;
     }
   }
 
@@ -114,9 +120,12 @@ const init = () => {
     animate()
   }
   render()
+
+  //send data
   setInterval(() => {
+    currentPlayer.timestamp = date.getTime();
     socket.send(JSON.stringify({"action": "OnState", "state": currentPlayer}))
-  }, 100)
+  }, 16.7)
 }
 
   //Input
