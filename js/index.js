@@ -51,7 +51,9 @@ function webSocketTest() {
   let socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
   socket.onopen = (e) => {
     alert("Connection established!")
-    socket.send({"action": "OnState", "state": "TEST MESSAGE"})
+    let message = prompt("Enter message:")
+    socket.send(JSON.stringify({"action": "OnState", "state": message}))
+    //socket.send(JSON.stringify({"action": "OnState", "state": "TEST MESSAGE"}))
   }
   socket.onmessage = (e) => {
     alert(e.data)
