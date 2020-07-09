@@ -34,6 +34,8 @@ const init = () => {
       let npSphere = new THREE.Mesh( geometry, material );
       scene.add( npSphere );
       players[data.username].sphere = npSphere;
+    } else {
+      players[data.username].position = data.position;
     }
     console.log(data)
   }
