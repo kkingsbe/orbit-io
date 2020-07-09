@@ -2,6 +2,7 @@ var scene, camera, renderer, controls
 const width = window.innerWidth
 const height = window.innerHeight
 const ratio = width / height
+var playerSphere;
 
 const init = () => {
   scene = new THREE.Scene()
@@ -11,11 +12,21 @@ const init = () => {
   camera.position.x = 3
 
   controls = new THREE.OrbitControls(camera, document.getElementById("viewport"))
+
+  //axis
   axis = new THREE.AxisHelper(300)
   scene.add(axis)
+  //sphere
+  var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+  var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+  var sphere = new THREE.Mesh( geometry, material );
+  scene.add( sphere );
+  //sphere initial position
+  sphere.position.x = 20;
+  playerSphere = sphere;
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setClearColor("#e3e3e3")
+  renderer.setClearColor("#303030")
   renderer.setSize(width, height)
 
   document.getElementById("viewport").append(renderer.domElement)
@@ -39,6 +50,25 @@ const init = () => {
   }
   render()
 }
+  //input handling and movement
+  document.addEventListener('keydown', function(event) {
+      if(event.keyCode == 87) {
+          console.log('Forward was pressed');
+          playerSphere.position.x -= 1;
+      }
+      else if(event.keyCode == 65) {
+          console.log('D was pressed');
+          playerSphere.position.z += 1;
+      }
+      else if(event.keyCode == 83) {
+          console.log('S was pressed');
+          playerSphere.position.x += 1;
+      }
+
+      else if(event.keyCode == 68) {
+          playerSphere.position.z -= 1;
+      }
+  });
 
 const getPointLight = (color, intensity, distance) => {
   let light = new THREE.PointLight(color, intensity, distance)
