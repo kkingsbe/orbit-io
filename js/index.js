@@ -121,3 +121,22 @@ const getPointLight = (color, intensity, distance) => {
 }
 
 init()
+
+function webSocketTest() {
+  let socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
+  socket.onopen = (e) => {
+    alert("Connection established!")
+    let message = prompt("Enter message:")
+    socket.send(JSON.stringify({"action": "OnState", "state": message}))
+    //socket.send(JSON.stringify({"action": "OnState", "state": "TEST MESSAGE"}))
+  }
+  socket.onmessage = (e) => {
+    alert(e.data)
+  }
+  socket.onclose = (e) => {
+    alert("Connection ended")
+  }
+  socket.onerror = (e) => {
+    alert("Error :( ",e)
+  }
+}
