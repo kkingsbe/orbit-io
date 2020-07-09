@@ -20,14 +20,20 @@ const init = () => {
 
   //axis
   axis = new THREE.AxisHelper(300)
-  scene.add(axis)
-  
+  //scene.add(axis)
+
   //sphere
   var geometry = new THREE.SphereGeometry( 5, 32, 32 );
   var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
   var sphere = new THREE.Mesh( geometry, material );
   scene.add( sphere );
   playerSphere = sphere;
+
+  //grid
+  var size = 100;
+  var divisions = 10;
+  var gridHelper = new THREE.GridHelper( size, divisions );
+  scene.add( gridHelper );
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setClearColor("#303030")
