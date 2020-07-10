@@ -7,9 +7,14 @@ const dataRate = 100 //How many milliseconds between data transmissions
 const rbScaleFactor = 0.3 //The scale factor when rubberbanding
 const rbInterval = 5000 //How many ms before it initiates rubberbanding
 const rbThreshold = 0.5 //THe threshold for rubberbanding to stop
+const startingMass = 100 //The starting mass for players
+const G = 0.0000000000667408 //The value of the gravitational constant
+
 var socket;
 var players = {};
-var currentPlayer = {};
+var currentPlayer = {
+  mass: startingMass
+};
 
 var playerSphere;
 var wIsDown = false;
@@ -24,7 +29,6 @@ const init = () => {
   socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
   socket.onopen = (e) => {
     console.log("Connection established!")
-
   }
   socket.onmessage = (e) => {
     var data = JSON.parse(e.data);
@@ -111,6 +115,8 @@ const init = () => {
   const animate = () => {
     let dT = clock.getDelta()
     var acceleration = 1;
+    let externalAcceleration = calculateExternalAcceleration()
+    console.log(externalAcceleration)
 
     //Player Sphere Movement
     if(typeof(currentPlayer.velocity) == "undefined") {
@@ -132,6 +138,10 @@ const init = () => {
     if (dIsDown)  {
       currentPlayer.velocity.z -= acceleration
     }
+
+    currentPlayer.velocity.x += externalAcceleration.x * dT
+    currentPlayer.velocity.y += externalAcceleration.y * dT
+    currentPlayer.velocity.z += externalAcceleration.z * dT
 
     playerSphere.position.x += currentPlayer.velocity.x * dT
     playerSphere.position.z += currentPlayer.velocity.z * dT
@@ -173,14 +183,6 @@ const init = () => {
     currentPlayer.timestamp = (new Date()).getTime()
     socket.send(JSON.stringify({"action": "OnState", "state": currentPlayer}))
   }, dataRate)
-
-  /*
-  setInterval(() => {
-    for(let player in players) {
-      players[player].rubberBanding = true
-    }
-  }, rbInterval)
-  */
 }
 
   //Input
@@ -230,3 +232,32 @@ const getPointLight = (color, intensity, distance) => {
 }
 
 init()
+
+function calculateExternalAcceleration() {
+  let fx = 0
+  let fy = 0
+  let fz = 0
+  for(let player in players) {
+    let dx = players[player].position.x - currentPlayer.position.x
+    let dy = players[player].position.y - currentPlayer.position.y
+    let dz = players[player].position.z - currentPlayer.position.z
+
+    fx += G * ((currentPlayer.mass * players[player].mass) / Math.pow(dx, 2))
+    fy += G * ((currentPlayer.mass * players[player].mass) / Math.pow(dy, 2))
+    fz += G * ((currentPlayer.mass * players[player].mass) / Math.pow(dz, 2))
+
+    //double r = sqrt(pow((body1.getX() - body2.getX()), 2) + pow((body1.getY() - body2.getY()), 2));
+    //double f = G * ((body1.getMass() * body2.getMass()) / pow(r, 2));
+    //return abs(f);
+  }
+
+  let ax = fx / currentPlayer.mass
+  let ay = fy / currentPlayer.mass
+  let az = fz / currentPlayer.mass
+  
+  return {
+    x: ax,
+    y: ay,
+    z: az
+  }
+}
