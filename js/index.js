@@ -4,7 +4,7 @@ const height = window.innerHeight
 const ratio = width / height
 
 const dataRate = 100 //How many milliseconds between data transmissions
-const rbScaleFactor = 2 //The scale factor when rubberbanding
+const rbScaleFactor = 0.3 //The scale factor when rubberbanding
 const rbInterval = 5000 //How many ms before it initiates rubberbanding
 const rbThreshold = 0.5 //THe threshold for rubberbanding to stop
 var socket;
@@ -110,20 +110,31 @@ const init = () => {
   var clock = new THREE.Clock()
   const animate = () => {
     let dT = clock.getDelta()
-    var speed = 1;
+    var acceleration = 1;
+
     //Player Sphere Movement
+    if(typeof(currentPlayer.velocity) == "undefined") {
+      currentPlayer.velocity = {
+        x: 0,
+        y: 0,
+        z: 0
+      }
+    }
     if (wIsDown)  {
-      playerSphere.position.x -= speed;
+      currentPlayer.velocity.x -= acceleration
     }
     if (aIsDown)  {
-      playerSphere.position.z += speed;
+      currentPlayer.velocity.z += acceleration
     }
     if (sIsDown)  {
-      playerSphere.position.x += speed;
+      currentPlayer.velocity.x += acceleration
     }
     if (dIsDown)  {
-      playerSphere.position.z -= speed;
+      currentPlayer.velocity.z -= acceleration
     }
+
+    playerSphere.position.x += currentPlayer.velocity.x * dT
+    playerSphere.position.z += currentPlayer.velocity.z * dT
     currentPlayer.position = playerSphere.position;
 
     for (let player in players) {
@@ -138,11 +149,9 @@ const init = () => {
       }
 
       //Rubberband
-      if(players[player].rubberBanding) {
-        players[player].velocity.x += dx * rbScaleFactor
-        players[player].velocity.y += dy * rbScaleFactor
-        players[player].velocity.z += dz * rbScaleFactor
-      }
+      players[player].velocity.x += dx * rbScaleFactor
+      players[player].velocity.y += dy * rbScaleFactor
+      players[player].velocity.z += dz * rbScaleFactor
 
       //Move
       players[player].sphere.position.x += players[player].velocity.x * dT
