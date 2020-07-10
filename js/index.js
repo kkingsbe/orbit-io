@@ -3,10 +3,13 @@ const width = window.innerWidth
 const height = window.innerHeight
 const ratio = width / height
 
+const dataRate = 100 //How many milliseconds between data transmissions
+const rbScaleFactor = 2 //The scale factor when rubberbanding
+const rbInterval = 5000 //How many ms before it initiates rubberbanding
+const rbThreshold = 0.5 //THe threshold for rubberbanding to stop
 var socket;
 var players = {};
 var currentPlayer = {};
-var date = new Date();
 
 var playerSphere;
 var wIsDown = false;
@@ -36,12 +39,27 @@ const init = () => {
       let npSphere = new THREE.Mesh( geometry, material );
       scene.add( npSphere );
       players[data.username].sphere = npSphere;
-    } else { // existing player
-      if (players[data.username].timestamp < data.timestamp)  {
-        players[data.username].position = data.position;
+      players[data.username].velocity = {
+        x: 0,
+        y: 0,
+        z: 0
       }
+    } else { // existing player
+      let player = data.username
+      players[player].lastTimestamp = players[player].timestamp
+      players[player].timestamp = data.timestamp
+
+      //Set the last position to now be the previous position
+      players[player].previousPosition = players[data.username].position
+      players[player].position = data.position;
+
+      //Calculate the players x, y, and z velocities
+      let dT = players[player].timestamp - players[player].lastTimestamp
+      players[player].velocity.x = (players[player].position.x - players[player].previousPosition.x) * 1000 / dT
+      players[player].velocity.y = (players[player].position.y - players[player].previousPosition.y) * 1000 / dT
+      players[player].velocity.z = (players[player].position.z - players[player].previousPosition.z) * 1000 / dT
     }
-    console.log(data)
+    console.log(players)
   }
   socket.onclose = (e) => {
     console.log("Connection ended")
@@ -89,7 +107,9 @@ const init = () => {
     renderer.setSize(window.innerWidth, window.innerHeight)
   })
 
+  var clock = new THREE.Clock()
   const animate = () => {
+    let dT = clock.getDelta()
     var speed = 1;
     //Player Sphere Movement
     if (wIsDown)  {
@@ -107,9 +127,27 @@ const init = () => {
     currentPlayer.position = playerSphere.position;
 
     for (let player in players) {
-      players[player].sphere.position.x = players[player].position.x;
-      players[player].sphere.position.y = players[player].position.y;
-      players[player].sphere.position.z = players[player].position.z;
+      let dx = players[player].position.x - players[player].sphere.position.x
+      let dy = players[player].position.y - players[player].sphere.position.y
+      let dz = players[player].position.z - players[player].sphere.position.z
+
+      if(typeof(players[player].rubberBanding) == "undefined") players[player].rubberBanding = false
+
+      if(dx <= rbThreshold && dy <= rbThreshold && dz <= rbThreshold) {
+        players[player].rubberBanding = false
+      }
+
+      //Rubberband
+      if(players[player].rubberBanding) {
+        players[player].velocity.x += dx * rbScaleFactor
+        players[player].velocity.y += dy * rbScaleFactor
+        players[player].velocity.z += dz * rbScaleFactor
+      }
+
+      //Move
+      players[player].sphere.position.x += players[player].velocity.x * dT
+      players[player].sphere.position.y += players[player].velocity.y * dT
+      players[player].sphere.position.z += players[player].velocity.z * dT
     }
   }
 
@@ -123,9 +161,17 @@ const init = () => {
 
   //send data
   setInterval(() => {
-    currentPlayer.timestamp = date.getTime();
+    currentPlayer.timestamp = (new Date()).getTime()
     socket.send(JSON.stringify({"action": "OnState", "state": currentPlayer}))
-  }, 16.7)
+  }, dataRate)
+
+  /*
+  setInterval(() => {
+    for(let player in players) {
+      players[player].rubberBanding = true
+    }
+  }, rbInterval)
+  */
 }
 
   //Input
@@ -175,22 +221,3 @@ const getPointLight = (color, intensity, distance) => {
 }
 
 init()
-
-function webSocketTest() {
-  let socket = new WebSocket("wss://a2sfba4ufl.execute-api.us-east-1.amazonaws.com/Test")
-  socket.onopen = (e) => {
-    alert("Connection established!")
-    let message = prompt("Enter message:")
-    socket.send(JSON.stringify({"action": "OnState", "state": message}))
-    //socket.send(JSON.stringify({"action": "OnState", "state": "TEST MESSAGE"}))
-  }
-  socket.onmessage = (e) => {
-    alert(e.data)
-  }
-  socket.onclose = (e) => {
-    alert("Connection ended")
-  }
-  socket.onerror = (e) => {
-    alert("Error :( ",e)
-  }
-}
